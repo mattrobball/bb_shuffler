@@ -16,6 +16,8 @@ import (
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+
+	"github.com/mattrobball/bb_shuffler/local"
 )
 
 func filePath() (path string) {
@@ -92,8 +94,10 @@ func main() {
 		first_name := c.String(student[1])
 		names := []string{first_name,student[0]}
 		name := strings.Join(names," ")
-		class_list = append(class_list, name)
+		class_list = append(class_list, local.ChosenName(name))
 	}
+
+	fmt.Println(strings.Join(class_list,"\n"))
 
 	rand.Seed(time.Now().UnixNano())
 	rand.Shuffle(len(class_list), func(i, j int) { class_list[i], class_list[j] = class_list[j], class_list[i] })

@@ -152,15 +152,21 @@ func main() {
 
 	mailingList := records.emailList()
 
-	fmt.Printf("%s\n",mailingList)
+	fmt.Println("Email List")
+	fmt.Println("-----")
+	fmt.Printf("%s\n\n",mailingList)
 
 	classList := records.classList("\n")
 
-	fmt.Printf("%s\n",classList)
+	fmt.Println("Class List")
+	fmt.Println("-----")
+	fmt.Printf("%s\n\n",classList)
 
 	groups := records.groups(4)
 	total := len(groups)
 
+	fmt.Println("Groups")
+	fmt.Println("-----")
 	for i := 0; i < total ; i++ {
 		fmt.Printf("Group %s : %s \n",strconv.Itoa(i+1),groups[i].classList(", "))
 	}

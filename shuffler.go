@@ -10,15 +10,85 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 	"strconv"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
-
 	"github.com/mattrobball/bb_shuffler/local"
 )
+
+type studentInfo struct {
+	firstName string 
+	lastName string 
+	email string 
+}
+
+type infoList []studentInfo
+
+func (students infoList) Len() int { return len(students) }
+
+func (students infoList) Swap(i, j int) { students[i], students[j] = students[j], students[i] }
+
+func (students infoList) Less(i, j int) bool { 
+    if students[i].lastName != students[j].lastName {
+        return students[i].lastName < students[j].lastName
+    }
+    return students[i].firstName < students[j].firstName 
+}
+
+func (students infoList) emailList() string {
+	var emails string 
+	for j, val := range(students) {
+		if j == 0 {
+			emails = val.email + "@email.sc.edu" 
+		} else {
+			emails = emails + ", " + val.email + "@email.sc.edu"
+		}
+	}
+	return emails 
+}
+
+func (student studentInfo) name() string {
+	name := student.firstName + " " +  student.lastName 
+	name = local.ChosenName(name)
+	return name 
+}
+
+func (students infoList) classList(sep string) string {
+	sort.Sort(students)
+	var classList string 
+	for j, val := range(students) {
+		if j != 0 {
+			classList = classList + sep + val.name()
+		} else {
+			classList = classList + val.name()
+		}
+	}
+	return classList
+}
+
+func (students infoList) groups(n int) []infoList {
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(students), func(i, j int) { students[i], students[j] = students[j], students[i] })
+
+	var total, offset int
+	remainder := len(students) % n 
+	if remainder != 0 {
+		offset = 1
+	} 
+	
+	total = (len(students) / n) + offset
+
+	groups := make([]infoList,total)
+
+	for j, student := range students {
+		l := j % total
+		groups[l] = append(groups[l],student)
+	}
+
+	return groups 
+}
 
 func filePath() (path string) {
 
@@ -71,62 +141,28 @@ func main() {
 	t := strings.Split(s,"\n")
 	t = t[1:]
 
-	var records [][]string
+	var records infoList
 	for _, record := range(t[:len(t)-1]) {
 		broken_record := strings.Split(record,",")
-		records = append(records,broken_record[:4])
+		first := strings.Title(strings.ToLower(broken_record[1]))
+		last := strings.Title(strings.ToLower(broken_record[0]))
+		student := studentInfo{first,last,broken_record[2]}
+		records = append(records,student)
 	}
 
-	var email_list []string 
-	for _, student := range(records) {
-		pieces := []string{student[2],"@email.sc.edu"}
-		email := strings.Join(pieces,"")
-		email_list = append(email_list, email)
-	}
+	mailingList := records.emailList()
 
-	mailing_list := strings.Join(email_list,", ")
+	fmt.Printf("%s\n",mailingList)
 
-	fmt.Printf("%s\n",mailing_list)
+	classList := records.classList("\n")
 
-	var class_list []string
-	for _, student := range(records) {
-		var c cases.Caser = cases.Title(language.English)
-		first_name := c.String(student[1])
-		names := []string{first_name,student[0]}
-		name := strings.Join(names," ")
-		class_list = append(class_list, local.ChosenName(name))
-	}
+	fmt.Printf("%s\n",classList)
 
-	fmt.Println(strings.Join(class_list,"\n"))
-
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(class_list), func(i, j int) { class_list[i], class_list[j] = class_list[j], class_list[i] })
-
-	// class_list = append(class_list, "Some Dude")
-
-	var total, offset int
-	remainder := len(class_list) % 4 
-	if remainder != 0 {
-		offset = 1
-	} 
-	
-	total = (len(class_list) / 4) + offset
-
-	groups := make([]string,total)
-
-	// fmt.Println(class_list)
-
-	for j, name := range class_list {
-		l := j % total
-		if groups[l] == "" {
-			groups[l] = name
-		} else {
-			groups[l] = groups[l] + ", " + name 
-		}
-	}
+	groups := records.groups(4)
+	total := len(groups)
 
 	for i := 0; i < total ; i++ {
-		fmt.Printf("Group %s : %s \n",strconv.Itoa(i+1),groups[i])
+		fmt.Printf("Group %s : %s \n",strconv.Itoa(i+1),groups[i].classList(", "))
 	}
 
 }

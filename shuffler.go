@@ -18,6 +18,8 @@ import (
 	"github.com/mattrobball/bb_shuffler/local"
 )
 
+const groupsize = 3
+
 type studentInfo struct {
 	firstName string 
 	lastName string 
@@ -162,7 +164,7 @@ func main() {
 	fmt.Println("-----")
 	fmt.Printf("%s\n\n",classList)
 
-	groups := records.groups(4)
+	groups := records.groups(groupsize)
 	total := len(groups)
 
 	fmt.Println("Groups")
